@@ -56,7 +56,7 @@ class PythonFeedback(object):
             msg %= args
         if self.expr_orig:
             msg = '%s [%s]' % (msg, self.expr_orig)
-        self.feedback.append('* ' + msg)
+        self.feedback.append(msg)
 
     def genfeedback(self):
         gen = PythonStatementGenerator()
@@ -97,7 +97,7 @@ class PythonFeedback(object):
                 # Location of the expression
                 if expr2.line:
                     # Either line
-                    locdesc = 'at %s' % (expr2.line,)
+                    locdesc = 'at line %s' % (expr2.line,)
                 else:
                     # Or location description
                     locdesc = fnc2.getlocdesc(loc2)
