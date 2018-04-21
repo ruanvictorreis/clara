@@ -45,6 +45,7 @@ class ProgramFeedback(object):
 
     def __init__(self, impl, spec, result, cleanstrings=None):
         self.impl = impl
+        self.code = impl.code
         self.spec = spec
         self.result = result
         self.feedback = []
