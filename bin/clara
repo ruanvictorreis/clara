@@ -19,6 +19,7 @@ from clara.feedback import Feedback, FeedGen
 from clara.feedback_repair import RepairFeedback
 from clara.feedback_simple import SimpleFeedback
 from clara.feedback_python import PythonFeedback
+from clara.feedback_program import ProgramFeedback
 from clara.interpreter import getlanginter
 from clara.matching import Matching
 from clara.model import dict_to_expr
@@ -137,6 +138,8 @@ Options are:
             self.feedtype = SimpleFeedback
         elif self.feedtype == 'python':
             self.feedtype = PythonFeedback
+        elif self.feedtype == 'program':
+            self.feedtype = ProgramFeedback
         else:
             self.error("Unknown feedback type: '%s'", self.feedtype)
 
@@ -344,6 +347,7 @@ Options are:
                 code = f.read().decode('utf-8')
                 model = self.parser.parse_code(code)
                 model.name = src
+                model.code = code
                 self.extract_exprs(model)
                 self.models.append(model)
                 
