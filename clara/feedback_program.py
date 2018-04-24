@@ -4,6 +4,8 @@ Generating correct feedback from repair for Python programs
 
 from feedback_python import *
 
+ASSIGNMNET_OP = "="
+
 class CodeRepairFeedback(object):
 
     def __init__(self, impl, spec, result, cleanstrings=None):
@@ -12,7 +14,7 @@ class CodeRepairFeedback(object):
         self.result = result
         self.feedback = []
         self.expr_orig = None
-        self.code_repaired = impl.code.splitlines()
+        self.code_repaired = impl.code
 
     def add(self, msg, *args):
         if args:
@@ -21,17 +23,20 @@ class CodeRepairFeedback(object):
             msg = '%s [%s]' % (msg, self.expr_orig)
         self.feedback.append(msg)
     
-    def apply_repair(self, arg1, arg2, loc1, loc2):
-        print("=== apply_repair ===")
-        print(arg1)
-        print(arg2)
-        #code_line = self.code_repaired[loc - 1]
-        #print(code_line)
-        #code_line.replace(arg1, arg2)
-        #self.code_repaired[loc - 1] = code_line
+    def apply_assignment_repair(self, var, statement, loc):
+        code_lines = self.code_repaired.splitlines()
+        target = code_lines[loc - 1]
         
-        #code = "".join(str(l) for l in self.code_repaired)
-        #self.feedback.append(code)
+        target_splited = target.split(ASSIGNMNET_OP)
+        statement_splited = statement.split(ASSIGNMNET_OP)
+        
+        if target_splited[0].strip() == statement_splited[0].strip():
+            target_splited[-1] = statement_splited[-1]
+            target = ASSIGNMNET_OP.join(target_splited)
+            code_lines[loc - 1] = target
+            self.code_repaired = '\n'.join(code_lines)
+        else:
+            print("Something wrong happened!!")	
 				
     def genfeedback(self):
         gen = PythonStatementGenerator()
@@ -59,7 +64,7 @@ class CodeRepairFeedback(object):
                 cost = rep.cost
                 expr1 = rep.expr1
                 self.expr_orig = rep.expr1_orig
-
+                
                 # Get functions and loc2
                 fnc1 = self.spec.getfnc(fname)
                 fnc2 = self.impl.getfnc(fname)
@@ -76,7 +81,7 @@ class CodeRepairFeedback(object):
                 else:
                     # Or location description
                     locdesc = fnc2.getlocdesc(loc2)
-			
+
                 # Delete feedback
                 if var1 == '-':
                     self.add("Delete '%s' at line %s (cost=%s)",
@@ -92,8 +97,7 @@ class CodeRepairFeedback(object):
                              str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc, cost)
                     continue
 
-                # Output original and new (rewriten) expression for var2
-                
+                # Output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
@@ -101,10 +105,7 @@ class CodeRepairFeedback(object):
                 elif str(var2) == str(expr2):
                     self.add("Add a statement '%s' %s (cost=%s)", str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
                 else:
-                    #self.apply_repair(
-                    #     str(gen.assignmentStatement(var2, expr2)),
-                    #     str(gen.assignmentStatement(var2, expr1)),
-                    #     loc1, loc2)    					 					
+                    self.apply_assignment_repair(var2, str(gen.assignmentStatement(var2, expr1)), expr2.line) 					 					
                     self.add(
                         "Change '%s' to '%s' %s (cost=%s)",
                         str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
