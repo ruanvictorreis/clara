@@ -21,8 +21,17 @@ class CodeRepairFeedback(object):
             msg = '%s [%s]' % (msg, self.expr_orig)
         self.feedback.append(msg)
     
-    def apply_repair(self):
-		print(self.code_repaired)
+    def apply_repair(self, arg1, arg2, loc1, loc2):
+        print("=== apply_repair ===")
+        print(arg1)
+        print(arg2)
+        #code_line = self.code_repaired[loc - 1]
+        #print(code_line)
+        #code_line.replace(arg1, arg2)
+        #self.code_repaired[loc - 1] = code_line
+        
+        #code = "".join(str(l) for l in self.code_repaired)
+        #self.feedback.append(code)
 				
     def genfeedback(self):
         gen = PythonStatementGenerator()
@@ -67,7 +76,7 @@ class CodeRepairFeedback(object):
                 else:
                     # Or location description
                     locdesc = fnc2.getlocdesc(loc2)
-
+			
                 # Delete feedback
                 if var1 == '-':
                     self.add("Delete '%s' at line %s (cost=%s)",
@@ -92,6 +101,10 @@ class CodeRepairFeedback(object):
                 elif str(var2) == str(expr2):
                     self.add("Add a statement '%s' %s (cost=%s)", str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
                 else:
+                    #self.apply_repair(
+                    #     str(gen.assignmentStatement(var2, expr2)),
+                    #     str(gen.assignmentStatement(var2, expr1)),
+                    #     loc1, loc2)    					 					
                     self.add(
                         "Change '%s' to '%s' %s (cost=%s)",
                         str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
