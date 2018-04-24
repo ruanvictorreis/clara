@@ -4,15 +4,15 @@ Generating correct feedback from repair for Python programs
 
 from feedback_python import *
 
-class ProgramFeedback(object):
+class CodeRepairFeedback(object):
 
     def __init__(self, impl, spec, result, cleanstrings=None):
         self.impl = impl
-        self.code = impl.code
         self.spec = spec
         self.result = result
         self.feedback = []
         self.expr_orig = None
+        self.code_repaired = impl.code.splitlines()
 
     def add(self, msg, *args):
         if args:
@@ -20,7 +20,10 @@ class ProgramFeedback(object):
         if self.expr_orig:
             msg = '%s [%s]' % (msg, self.expr_orig)
         self.feedback.append(msg)
-
+    
+    def apply_repair(self):
+		print(self.code_repaired)
+				
     def genfeedback(self):
         gen = PythonStatementGenerator()
         # Iterate all functions
