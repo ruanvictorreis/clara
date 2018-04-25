@@ -30,9 +30,9 @@ class CodeRepairFeedback(object):
             self.code_repaired = new_code
         else:
 			loc = self.find_expression_line(expr1)
-			self.apply_swap_repair(expr1, expr2, loc)
+			self.apply_assignment_change_repair(expr1, expr2, loc)
 	
-    def apply_swap_repair(self, expr1, expr2, loc):
+    def apply_assignment_change_repair(self, expr1, expr2, loc):
         code_lines = self.code_repaired.splitlines()
         line_target = code_lines[loc - 1]
         
@@ -42,11 +42,10 @@ class CodeRepairFeedback(object):
         seq_matcher = SequenceMatcher(
             None, line_target_striped, expr1_striped)
         
-        longest_match = seq_matcher.find_longest_match(
-            0, len(line_target_striped), 0, len(expr1_striped))
+        first_match = seq_matcher.get_matching_blocks()[0]
         
         common_expression = line_target_striped[
-            longest_match.a: longest_match.a + longest_match.size][:-1]     
+            first_match.a: first_match.a + first_match.size][:-1]     
         
         line_target_splited = line_target.split(common_expression)
         expression_splited = expr2.split(common_expression)
@@ -87,6 +86,7 @@ class CodeRepairFeedback(object):
         return target_line    				
     
     def genfeedback(self):
+        loc_added = 0
         gen = PythonStatementGenerator()
         # Iterate all functions
         # fname - function name
@@ -96,7 +96,7 @@ class CodeRepairFeedback(object):
         for fname, (mapping, repairs, sm) in self.result.items():
 
             # Copy mapping with converting '*' into a 'new_' variable
-            nmapping = {k: '$new_%s' % (k,)
+            nmapping = {k: 'new_%s' % (k,)
                         if v == '*' else v for (k, v) in mapping.items()}
 
             # Go through all repairs
@@ -122,29 +122,24 @@ class CodeRepairFeedback(object):
                 #expr1 = fnc1.getexpr(loc1, var1)
                 expr2 = fnc2.getexpr(loc2, var2)
 
-                # Location of the expression
-                if expr2.line:
-                    # Either line
-                    locdesc = 'at line %s' % (expr2.line,)
-                else:
-                    # Or location description
-                    locdesc = fnc2.getlocdesc(loc2)
-
-                # Delete feedback
+                # delete feedback
                 if var1 == '-':
                     self.apply_delete_repair(str(gen.assignmentStatement(var2, expr2)))    					
                     continue
 
-                # Rewrite expr1 (from spec.) with variables of impl.
+                # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.add("Add assignment '%s' %s (cost=%s)",
-                             str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc, cost)
+                    self.apply_add_statement_repair(
+                        str(gen.assignmentStatement(
+                        'new_%s' % (var1,), expr1)), loc1 - loc_added)
+                    
+                    loc_added += 1
                     continue
 
-                # Output original and new (rewriten) expression for var2              
+                # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
@@ -159,5 +154,5 @@ class CodeRepairFeedback(object):
                         str(gen.assignmentStatement(var2, expr2)), 
                         str(gen.assignmentStatement(var2, expr1)))     
         
-        # Adding repaired code to feedback list
-        self.feedback.append("\n\n" + self.code_repaired + "\n\n*")
+        # adding repaired code to feedback list
+        self.feedback.append("\n" + self.code_repaired + "\n*")
