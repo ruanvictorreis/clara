@@ -51,6 +51,12 @@ class CodeRepairFeedback(object):
         code_lines[loc - 1] = line_target
         self.code_repaired = '\n'.join(code_lines)
     
+    def apply_delete_repair(self, expr):
+        code_lines = self.code_repaired.splitlines()
+        loc = self.find_expression_line(expr)
+        del code_lines[loc - 1]
+        self.code_repaired = '\n'.join(code_lines)		
+		
     def find_expression_line(self, expr):
         ratio_line = -1
         target_line = 0
@@ -113,8 +119,7 @@ class CodeRepairFeedback(object):
 
                 # Delete feedback
                 if var1 == '-':
-                    self.add("Delete '%s' at line %s (cost=%s)",
-                             str(gen.assignmentStatement(var2, expr2)), expr2.line, cost)
+                    self.apply_delete_repair(str(gen.assignmentStatement(var2, expr2)))    					
                     continue
 
                 # Rewrite expr1 (from spec.) with variables of impl.
@@ -139,4 +144,4 @@ class CodeRepairFeedback(object):
                     self.apply_change_repair(str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)))     
         
         # Adding repaired code to feedback list
-        self.feedback.append("\n" + self.code_repaired + "\n*")
+        self.feedback.append("\n\n" + self.code_repaired + "\n\n*")
