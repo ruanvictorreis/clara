@@ -38,10 +38,15 @@ class CodeRepairFeedback(object):
         
         expr1_striped = expr1.strip()
         line_target_striped = line_target.strip()
+             
+        seq_matcher = SequenceMatcher(
+            None, line_target_striped, expr1_striped)
         
-        seq_matcher = SequenceMatcher(None, line_target_striped, expr1_striped)
-        longest_match = seq_matcher.find_longest_match(0, len(line_target_striped), 0, len(expr1_striped))
-        common_expression = line_target_striped[longest_match.a: longest_match.a + longest_match.size][:-1]
+        longest_match = seq_matcher.find_longest_match(
+            0, len(line_target_striped), 0, len(expr1_striped))
+        
+        common_expression = line_target_striped[
+            longest_match.a: longest_match.a + longest_match.size][:-1]     
         
         line_target_splited = line_target.split(common_expression)
         expression_splited = expr2.split(common_expression)
@@ -55,8 +60,16 @@ class CodeRepairFeedback(object):
         code_lines = self.code_repaired.splitlines()
         loc = self.find_expression_line(expr)
         del code_lines[loc - 1]
-        self.code_repaired = '\n'.join(code_lines)		
-		
+        self.code_repaired = '\n'.join(code_lines)
+    
+    def apply_add_statement_repair(self, expr, loc):
+        code_lines = self.code_repaired.splitlines()
+        target_line = code_lines[loc]
+        indentation_level = len(target_line) - len(target_line.strip())
+        target_line = target_line[:indentation_level] + expr      
+        code_lines = code_lines[:loc] + [target_line] + code_lines[loc:]
+        self.code_repaired = '\n'.join(code_lines)   
+        		
     def find_expression_line(self, expr):
         ratio_line = -1
         target_line = 0
@@ -138,10 +151,13 @@ class CodeRepairFeedback(object):
                     self.apply_change_repair(str(pyexpr2), str(pyexpr1))
 
                 elif str(var2) == str(expr2):
-                    self.add("Add a statement '%s' %s (cost=%s)", str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
+                    self.apply_add_statement_repair(
+                        str(gen.assignmentStatement(var2, expr1)), loc1)    					
                 
                 else:
-                    self.apply_change_repair(str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)))     
+                    self.apply_change_repair(
+                        str(gen.assignmentStatement(var2, expr2)), 
+                        str(gen.assignmentStatement(var2, expr1)))     
         
         # Adding repaired code to feedback list
         self.feedback.append("\n\n" + self.code_repaired + "\n\n*")
