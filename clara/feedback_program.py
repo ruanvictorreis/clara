@@ -3,8 +3,7 @@ Generating correct feedback from repair for Python programs
 '''
 
 from feedback_python import *
-
-ASSIGNMNET_OP = "="
+from difflib import SequenceMatcher
 
 class CodeRepairFeedback(object):
 
@@ -22,22 +21,52 @@ class CodeRepairFeedback(object):
         if self.expr_orig:
             msg = '%s [%s]' % (msg, self.expr_orig)
         self.feedback.append(msg)
-    
-    def apply_assignment_repair(self, var, statement, loc):
-        code_lines = self.code_repaired.splitlines()
-        target = code_lines[loc - 1]
+
+    def apply_change_repair(self, expr1, expr2):
+        impl_code = self.code_repaired
         
-        target_splited = target.split(ASSIGNMNET_OP)
-        statement_splited = statement.split(ASSIGNMNET_OP)
-        
-        if target_splited[0].strip() == statement_splited[0].strip():
-            target_splited[-1] = statement_splited[-1]
-            target = ASSIGNMNET_OP.join(target_splited)
-            code_lines[loc - 1] = target
-            self.code_repaired = '\n'.join(code_lines)
+        if expr1 in impl_code:
+            new_code = impl_code.replace(expr1, expr2)
+            self.code_repaired = new_code
         else:
-            print("Something wrong happened!!")	
-				
+			loc = self.find_expression_line(expr1)
+			self.apply_swap_repair(expr1, expr2, loc)
+	
+    def apply_swap_repair(self, expr1, expr2, loc):
+        code_lines = self.code_repaired.splitlines()
+        line_target = code_lines[loc - 1]
+        
+        expr1_striped = expr1.strip()
+        line_target_striped = line_target.strip()
+        
+        seq_matcher = SequenceMatcher(None, line_target_striped, expr1_striped)
+        longest_match = seq_matcher.find_longest_match(0, len(line_target_striped), 0, len(expr1_striped))
+        common_expression = line_target_striped[longest_match.a: longest_match.a + longest_match.size][:-1]
+        
+        line_target_splited = line_target.split(common_expression)
+        expression_splited = expr2.split(common_expression)
+        
+        line_target_splited[-1] = expression_splited[-1]
+        line_target = common_expression.join(line_target_splited)
+        code_lines[loc - 1] = line_target
+        self.code_repaired = '\n'.join(code_lines)
+    
+    def find_expression_line(self, expr):
+        ratio_line = -1
+        target_line = 0
+        impl_code = self.code_repaired
+        code_lines = impl_code.splitlines()
+        
+        for i in range(len(code_lines)):
+            line = code_lines[i]
+            ratio = SequenceMatcher(None, line, expr).ratio()
+            
+            if(ratio > ratio_line):
+                ratio_line = ratio
+                target_line = i + 1    
+        
+        return target_line    				
+    
     def genfeedback(self):
         gen = PythonStatementGenerator()
         # Iterate all functions
@@ -101,11 +130,13 @@ class CodeRepairFeedback(object):
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
-                    self.add("Change iterated expression of for loop '%s' to '%s' %s (cost=%s)", str(pyexpr2), str(pyexpr1), locdesc, cost)
+                    self.apply_change_repair(str(pyexpr2), str(pyexpr1))
+
                 elif str(var2) == str(expr2):
                     self.add("Add a statement '%s' %s (cost=%s)", str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
+                
                 else:
-                    self.apply_assignment_repair(var2, str(gen.assignmentStatement(var2, expr1)), expr2.line) 					 					
-                    self.add(
-                        "Change '%s' to '%s' %s (cost=%s)",
-                        str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
+                    self.apply_change_repair(str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)))     
+        
+        # Adding repaired code to feedback list
+        self.feedback.append("\n" + self.code_repaired + "\n*")
