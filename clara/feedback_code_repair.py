@@ -54,13 +54,24 @@ class CodeRepairFeedback(object):
         del code_lines[loc - 1]
         self.code_repaired = '\n'.join(code_lines)
     
-    def apply_add_statement_repair(self, expr, loc):
+    def apply_add_statement_repair(self, var, expr, loc):        
+        ret_statement = False 
+        
+        if(var == '$ret'):
+            loc = loc - 1
+            ret_statement = True	
+        
         code_lines = self.code_repaired.splitlines()
-        target_line = code_lines[loc]
-        indentation_level = len(target_line) - len(target_line.strip())
+        target_line = code_lines[loc]    
+        indentation_level = len(target_line) - len(target_line.strip())     
         target_line = target_line[:indentation_level] + expr      
-        code_lines = code_lines[:loc] + [target_line] + code_lines[loc:]
-        self.code_repaired = '\n'.join(code_lines)   
+        
+        if(ret_statement):
+		    code_lines.append(target_line)
+        else:
+            code_lines.insert(loc, target_line)
+
+        self.code_repaired = '\n'.join(code_lines)
         		
     def find_expression_line(self, expr):
         ratio_line = -1
@@ -125,9 +136,9 @@ class CodeRepairFeedback(object):
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.apply_add_statement_repair(
-                        str(gen.assignmentStatement(
-                        'new_%s' % (var1,), expr1)), loc1 - loc_added)                   
+                    self.apply_add_statement_repair(var1,
+                        str(gen.assignmentStatement('new_%s' % 
+                        (var1,), expr1)), loc1 - loc_added)                   
                     loc_added += 1
                     continue
 
@@ -138,13 +149,14 @@ class CodeRepairFeedback(object):
                     self.apply_change_repair(pyexpr2, pyexpr1)
 
                 elif str(var2) == str(expr2):
-                    self.apply_add_statement_repair(
+                    self.apply_add_statement_repair(var2,
                         str(gen.assignmentStatement(var2, expr1)), loc1)    					
-                
+                    loc_added += 1
+					
                 else:
                     self.apply_change_repair(
                         str(gen.assignmentStatement(var2, expr2)), 
                         str(gen.assignmentStatement(var2, expr1)))     
         
-        # adding repaired code to feedback list
+        #adding repaired code to feedback list
         self.feedback.append(self.code_repaired)
