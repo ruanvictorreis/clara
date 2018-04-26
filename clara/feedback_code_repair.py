@@ -15,13 +15,6 @@ class CodeRepairFeedback(object):
         self.expr_orig = None
         self.code_repaired = impl.code
 
-    def add(self, msg, *args):
-        if args:
-            msg %= args
-        if self.expr_orig:
-            msg = '%s [%s]' % (msg, self.expr_orig)
-        self.feedback.append(msg)
-
     def apply_change_repair(self, expr1, expr2):
         impl_code = self.code_repaired
         
@@ -134,16 +127,15 @@ class CodeRepairFeedback(object):
                 if var2 == '*':
                     self.apply_add_statement_repair(
                         str(gen.assignmentStatement(
-                        'new_%s' % (var1,), expr1)), loc1 - loc_added)
-                    
+                        'new_%s' % (var1,), expr1)), loc1 - loc_added)                   
                     loc_added += 1
                     continue
 
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
-                    pyexpr1 = gen.pythonExpression(expr1, True)[0]
-                    pyexpr2 = gen.pythonExpression(expr2, True)[0]
-                    self.apply_change_repair(str(pyexpr2), str(pyexpr1))
+                    pyexpr1 = str(gen.pythonExpression(expr1, True)[0]) + ":"
+                    pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
+                    self.apply_change_repair(pyexpr2, pyexpr1)
 
                 elif str(var2) == str(expr2):
                     self.apply_add_statement_repair(
@@ -155,4 +147,4 @@ class CodeRepairFeedback(object):
                         str(gen.assignmentStatement(var2, expr1)))     
         
         # adding repaired code to feedback list
-        self.feedback.append("\n" + self.code_repaired + "\n*")
+        self.feedback.append(self.code_repaired)

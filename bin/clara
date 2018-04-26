@@ -19,7 +19,7 @@ from clara.feedback import Feedback, FeedGen
 from clara.feedback_repair import RepairFeedback
 from clara.feedback_simple import SimpleFeedback
 from clara.feedback_python import PythonFeedback
-from clara.feedback_program import CodeRepairFeedback
+from clara.feedback_code_repair import CodeRepairFeedback
 from clara.interpreter import getlanginter
 from clara.matching import Matching
 from clara.model import dict_to_expr
@@ -276,8 +276,11 @@ Options are:
             if self.maxfeedcost > 0 and feed.cost > self.maxfeedcost:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
+            
+            print "\n====="     
             for f in feed.feedback:
-                print '*', f
+                print f
+            print "=====\n"
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
