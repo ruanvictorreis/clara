@@ -14,7 +14,7 @@ class RepairFeedback(object):
     def add(self, msg, *args):
         if args:
             msg %= args
-        self.feedback.append(msg)
+        self.feedback.append('* ' + msg)
 
     def genfeedback(self):
         # Iterate all functions

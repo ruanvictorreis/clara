@@ -27,6 +27,7 @@ from clara.parser import getlangparser
 from clara.repair import Repair
 
 VERBOSE=0
+BULLET='>>'
 
 class Clara(object):
 
