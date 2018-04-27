@@ -38,7 +38,16 @@ class CodeRepairFeedback(object):
         first_match = seq_matcher.get_matching_blocks()[0]
         
         common_expression = line_target_striped[
-            first_match.a: first_match.a + first_match.size][:-1]     
+            first_match.a: first_match.a + first_match.size]  
+        
+        if common_expression not in expr2:
+            seq_matcher = SequenceMatcher(
+                None, common_expression, expr2)
+            
+            first_match = seq_matcher.get_matching_blocks()[0]
+            
+            common_expression = common_expression[
+                first_match.a: first_match.a + first_match.size]   		
         
         line_target_splited = line_target.split(common_expression)
         expression_splited = expr2.split(common_expression)
@@ -57,7 +66,7 @@ class CodeRepairFeedback(object):
     def apply_add_statement_repair(self, var, expr, loc):        
         ret_statement = False 
         
-        if(var == '$ret'):
+        if var == '$ret':
             loc = loc - 1
             ret_statement = True	
         
