@@ -100,6 +100,7 @@ class CodeRepairFeedback(object):
     
     def genfeedback(self):
         loc_added = 0
+        loc_removed = 0
         gen = PythonStatementGenerator()
         # Iterate all functions
         # fname - function name
@@ -143,12 +144,16 @@ class CodeRepairFeedback(object):
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
+                
+                # update referenced lines of code
+                loc1 += loc_added
+                loc1 -= loc_removed
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
                     self.apply_add_statement_repair(var1,
                         str(gen.assignmentStatement('new_%s' % 
-                        (var1,), expr1)), loc1 - loc_added)                   
+                        (var1,), expr1)), loc1)                   
                     loc_added += 1
                     continue
 
@@ -163,10 +168,12 @@ class CodeRepairFeedback(object):
                         str(gen.assignmentStatement(var2, expr1)), loc1)    					
                     loc_added += 1
                 
-                elif str(var2) == '$ret' and str(var2) == str(expr1):					
+                ### DANGER #WORKING HERE
+                elif str(var2) == str(expr1):					
                     self.apply_delete_repair(
-                        str(gen.assignmentStatement(var2, expr2)))  
-                
+                        str(gen.assignmentStatement(var2, expr2)))
+                    loc_removed +=1  
+                ###
                 else:					
                     self.apply_change_repair(
                         str(gen.assignmentStatement(var2, expr2)), 
