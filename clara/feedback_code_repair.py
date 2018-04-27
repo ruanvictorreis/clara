@@ -17,21 +17,15 @@ class CodeRepairFeedback(object):
         self.added_lines = []
         self.removed_lines = []
         self.code_repaired = impl.code
-
-    def apply_change_repair(self, expr1, expr2):
-        impl_code = self.code_repaired
-        
-        if expr1 in impl_code:
-            new_code = impl_code.replace(expr1, expr2)
-            self.code_repaired = new_code
-        else:
-			loc = self.find_expression_line(expr1)
-			self.apply_assignment_change_repair(expr1, expr2, loc)
 	
-    def apply_assignment_change_repair(self, expr1, expr2, loc):
+    def apply_change_repair(self, expr1, expr2):
         code_lines = self.code_repaired.splitlines()
+        loc = self.find_expression_line(expr1)
         line_target = code_lines[loc - 1]
-        
+		
+        if expr1 in line_target:
+            line_target = line_target.replace(expr1, expr2)
+		
         expr1_striped = expr1.strip()
         line_target_striped = line_target.strip()
              
@@ -185,7 +179,7 @@ class CodeRepairFeedback(object):
                     self.apply_delete_repair(
                         str(gen.assignmentStatement(var2, expr2)))
                     
-                else:					
+                else:
                     self.apply_change_repair(
                         str(gen.assignmentStatement(var2, expr2)), 
                         str(gen.assignmentStatement(var2, expr1)))     
