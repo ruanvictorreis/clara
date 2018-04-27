@@ -13,6 +13,9 @@ class CodeRepairFeedback(object):
         self.result = result
         self.feedback = []
         self.expr_orig = None
+        
+        self.added_lines = []
+        self.removed_lines = []
         self.code_repaired = impl.code
 
     def apply_change_repair(self, expr1, expr2):
@@ -61,11 +64,14 @@ class CodeRepairFeedback(object):
         code_lines = self.code_repaired.splitlines()
         loc = self.find_expression_line(expr)
         del code_lines[loc - 1]
+        
+        self.removed_lines.append(loc)
         self.code_repaired = '\n'.join(code_lines)
     
     def apply_add_statement_repair(self, var, expr, loc):        
         ret_statement = False 
-        
+        loc = loc + self.line_offset(loc)
+
         if var == '$ret':
             loc = loc - 1
             ret_statement = True	
@@ -77,8 +83,10 @@ class CodeRepairFeedback(object):
         
         if(ret_statement):
 		    code_lines.append(target_line)
+		    self.added_lines.append(len(code_lines))
         else:
             code_lines.insert(loc, target_line)
+            self.added_lines.append(loc)
 
         self.code_repaired = '\n'.join(code_lines)
         		
@@ -98,9 +106,20 @@ class CodeRepairFeedback(object):
         
         return target_line    				
     
+    def line_offset(self, new_line):
+        offset = 0
+		
+        for line in self.removed_lines:
+            if new_line >= line:
+                offset -= 1
+
+        for line in self.added_lines:
+            if new_line >= line:
+                offset += 1		
+        
+        return offset	 
+    
     def genfeedback(self):
-        loc_added = 0
-        loc_removed = 0
         gen = PythonStatementGenerator()
         # Iterate all functions
         # fname - function name
@@ -144,17 +163,12 @@ class CodeRepairFeedback(object):
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
-                
-                # update referenced lines of code
-                loc1 += loc_added
-                loc1 -= loc_removed
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
                     self.apply_add_statement_repair(var1,
                         str(gen.assignmentStatement('new_%s' % 
                         (var1,), expr1)), loc1)                   
-                    loc_added += 1
                     continue
 
                 # output original and new (rewriten) expression for var2              
@@ -166,18 +180,15 @@ class CodeRepairFeedback(object):
                 elif str(var2) == str(expr2):
                     self.apply_add_statement_repair(var2,
                         str(gen.assignmentStatement(var2, expr1)), loc1)    					
-                    loc_added += 1
                 
-                ### DANGER #WORKING HERE
                 elif str(var2) == str(expr1):					
                     self.apply_delete_repair(
                         str(gen.assignmentStatement(var2, expr2)))
-                    loc_removed +=1  
-                ###
+                    
                 else:					
                     self.apply_change_repair(
                         str(gen.assignmentStatement(var2, expr2)), 
                         str(gen.assignmentStatement(var2, expr1)))     
         
-        #adding repaired code to feedback list
+        # adding repaired code to feedback list
         self.feedback.append(self.code_repaired)
