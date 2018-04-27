@@ -137,7 +137,8 @@ class CodeRepairFeedback(object):
 
                 # delete feedback
                 if var1 == '-':
-                    self.apply_delete_repair(str(gen.assignmentStatement(var2, expr2)))    					
+                    self.apply_delete_repair(
+                        str(gen.assignmentStatement(var2, expr2)))    					
                     continue
 
                 # rewrite expr1 (from spec.) with variables of impl.
@@ -161,8 +162,12 @@ class CodeRepairFeedback(object):
                     self.apply_add_statement_repair(var2,
                         str(gen.assignmentStatement(var2, expr1)), loc1)    					
                     loc_added += 1
-					
-                else:
+                
+                elif str(var2) == '$ret' and str(var2) == str(expr1):					
+                    self.apply_delete_repair(
+                        str(gen.assignmentStatement(var2, expr2)))  
+                
+                else:					
                     self.apply_change_repair(
                         str(gen.assignmentStatement(var2, expr2)), 
                         str(gen.assignmentStatement(var2, expr1)))     
