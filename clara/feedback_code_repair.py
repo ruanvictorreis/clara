@@ -69,24 +69,24 @@ class CodeRepairFeedback(object):
         self.code_repaired = '\n'.join(code_lines)
     
     def apply_add_statement_repair(self, var, expr, loc):        
-        ret_statement = False 
-        loc = loc + self.line_offset(loc)
-
+        ret_statement = False
+        loc_off = loc + self.line_offset(loc)
+		
         if var == '$ret':
-            loc = loc - 1
+            loc_off = loc_off - 1
             ret_statement = True	
         
         code_lines = self.code_repaired.splitlines()
-        target_line = code_lines[loc]    
-        indentation_level = len(target_line) - len(target_line.strip())     
+        target_line = code_lines[loc_off]        
+        indentation_level = len(target_line) - len(target_line.strip())
         target_line = target_line[:indentation_level] + expr      
         
         if(ret_statement):
 		    code_lines.append(target_line)
 		    self.added_lines.append(len(code_lines))
         else:
-            code_lines.insert(loc, target_line)
-            self.added_lines.append(loc)
+            code_lines.insert(loc_off, target_line)
+            self.added_lines.append(loc_off)
 
         self.code_repaired = '\n'.join(code_lines)
         		
@@ -97,8 +97,8 @@ class CodeRepairFeedback(object):
         code_lines = impl_code.splitlines()
         
         for i in range(len(code_lines)):
-            line = code_lines[i]
-            ratio = SequenceMatcher(None, line, expr).ratio()
+            line = code_lines[i].strip()
+            ratio = SequenceMatcher(None, line, expr.strip()).ratio()
             
             if(ratio > ratio_line):
                 ratio_line = ratio
