@@ -1,3 +1,5 @@
-def fatorial(n):
+def factorial(n):
+  total = 1
   for i in range(n):
-    	return n*2
+    total = (n-1)*(n)*(total)
+  return total
