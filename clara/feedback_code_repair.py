@@ -67,13 +67,12 @@ class CodeRepairFeedback(object):
         loc_off = loc + self.line_offset(loc)
 		
         if var == '$ret':
+            loc = loc - 1
             loc_off = loc_off - 1
             ret_statement = True	
         
         code_lines = self.code_repaired.splitlines()
-        target_line = code_lines[loc_off]        
-        indentation_level = len(target_line) - len(target_line.strip())
-        target_line = target_line[:indentation_level] + expr      
+        target_line = self.find_indentation_level(loc) + expr     
         
         if(ret_statement):
 		    code_lines.append(target_line)
@@ -84,6 +83,13 @@ class CodeRepairFeedback(object):
 
         self.code_repaired = '\n'.join(code_lines)
         		
+    def find_indentation_level(self, loc):
+        impl_code = self.impl.code
+        code_lines = impl_code.splitlines()
+        target_line = code_lines[loc]
+        level = len(target_line) - len(target_line.strip())
+        return target_line[:level]	
+		
     def find_expression_line(self, expr):
         ratio_line = -1
         target_line = 0
