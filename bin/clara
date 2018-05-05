@@ -278,10 +278,8 @@ Options are:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
             
-            print "\n====="     
             for f in feed.feedback:
                 print f
-            print "=====\n"
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
