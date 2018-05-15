@@ -139,7 +139,7 @@ Options are:
             self.feedtype = SimpleFeedback
         elif self.feedtype == 'python':
             self.feedtype = PythonFeedback
-        elif self.feedtype == 'code-repair':
+        elif self.feedtype == 'synthesis':
             self.feedtype = CodeRepairFeedback
         else:
             self.error("Unknown feedback type: '%s'", self.feedtype)
