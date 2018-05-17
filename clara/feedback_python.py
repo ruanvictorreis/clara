@@ -104,8 +104,8 @@ class PythonFeedback(object):
 
                 # Delete feedback
                 if var1 == '-':
-                    self.add("Delete '%s' at line %s (cost=%s)",
-                             str(gen.assignmentStatement(var2, expr2)), expr2.line, cost)
+                    self.add("Delete '%s' at line %s ",
+                             str(gen.assignmentStatement(var2, expr2)), expr2.line)
                     continue
 
                 # Rewrite expr1 (from spec.) with variables of impl.
@@ -113,8 +113,8 @@ class PythonFeedback(object):
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.add("Add assignment '%s' %s (cost=%s)",
-                             str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc, cost)
+                    self.add("Add assignment '%s' %s",
+                             str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc)
                     continue
 
                 # Output original and new (rewriten) expression for var2
@@ -122,13 +122,13 @@ class PythonFeedback(object):
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
-                    self.add("Change iterated expression of for loop '%s' to '%s' %s (cost=%s)", str(pyexpr2), str(pyexpr1), locdesc, cost)
+                    self.add("Change iterated expression of for loop '%s' to '%s' %s", str(pyexpr2), str(pyexpr1), locdesc)
                 elif str(var2) == str(expr2):
-                    self.add("Add a statement '%s' %s (cost=%s)", str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
+                    self.add("Add a statement '%s' %s", str(gen.assignmentStatement(var2, expr1)), locdesc)
                 else:
                     self.add(
-                        "Change '%s' to '%s' %s (cost=%s)",
-                        str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc, cost)
+                        "Change '%s' to '%s' %s",
+                        str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc)
                 
                 
 class PythonStatementGenerator(object):
