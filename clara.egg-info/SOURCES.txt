@@ -7,10 +7,10 @@ clara/c_interpreter.py
 clara/c_parser.py
 clara/common.py
 clara/feedback.py
-clara/feedback_code_repair.py
 clara/feedback_python.py
 clara/feedback_repair.py
 clara/feedback_simple.py
+clara/feedback_synthesis.py
 clara/ilp.py
 clara/interpreter.py
 clara/lpsolve.pxd

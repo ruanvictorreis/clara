@@ -5,7 +5,7 @@ Generating correct feedback from repair for Python programs
 from feedback_python import *
 from difflib import SequenceMatcher
 
-class CodeRepairFeedback(object):
+class SynthesisFeedback(object):
 
     def __init__(self, impl, spec, result, cleanstrings=None):
         self.impl = impl
@@ -157,38 +157,56 @@ class CodeRepairFeedback(object):
 
                 # delete feedback
                 if var1 == '-':
-                    self.apply_delete_repair(
-                        str(gen.assignmentStatement(var2, expr2)))    					
-                    continue
+                    try:                    
+                        self.apply_delete_repair(
+                            str(gen.assignmentStatement(var2, expr2)))    					
+                        continue
+                    except:
+						pass  
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.apply_add_statement_repair(var1,
-                        str(gen.assignmentStatement('new_%s' % 
-                        (var1,), expr1)), loc1)                   
-                    continue
+                    try: 
+                        self.apply_add_statement_repair(var1,
+                            str(gen.assignmentStatement('new_%s' % 
+                            (var1,), expr1)), loc1)                   
+                        continue
+                    except:
+						pass  
 
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
-                    pyexpr1 = str(gen.pythonExpression(expr1, True)[0]) + ":"
-                    pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
-                    self.apply_change_repair(pyexpr2, pyexpr1)
+                    try:
+                        pyexpr1 = str(gen.pythonExpression(expr1, True)[0]) + ":"
+                        pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
+                        self.apply_change_repair(pyexpr2, pyexpr1)
+                    except:
+						pass    
 
                 elif str(var2) == str(expr2):
-                    self.apply_add_statement_repair(var2,
-                        str(gen.assignmentStatement(var2, expr1)), loc1)    					
+                    try:
+                        self.apply_add_statement_repair(var2,
+                            str(gen.assignmentStatement(var2, expr1)), loc1)
+                    except:
+						pass    					
                 
-                elif str(var2) == str(expr1):					
-                    self.apply_delete_repair(
-                        str(gen.assignmentStatement(var2, expr2)))
+                elif str(var2) == str(expr1):
+                     try:				
+                        self.apply_delete_repair(
+                            str(gen.assignmentStatement(var2, expr2)))
+                     except:
+						pass
                     
                 else:
-                    self.apply_change_repair(
-                        str(gen.assignmentStatement(var2, expr2)), 
-                        str(gen.assignmentStatement(var2, expr1)))     
+                    try:
+                        self.apply_change_repair(
+                            str(gen.assignmentStatement(var2, expr2)), 
+                            str(gen.assignmentStatement(var2, expr1)))     
+                    except:
+						pass
         
         # adding repaired code to feedback list
         self.feedback.append(self.code_repaired)
