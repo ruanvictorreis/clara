@@ -56,7 +56,7 @@ class PythonFeedback(object):
             msg %= args
         if self.expr_orig:
             msg = '%s [%s]' % (msg, self.expr_orig)
-        self.feedback.append('# ' + msg)
+        self.feedback.append(msg)
 
     def genfeedback(self):
         gen = PythonStatementGenerator()
