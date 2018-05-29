@@ -97,14 +97,14 @@ class PythonFeedback(object):
                 # Location of the expression
                 if expr2.line:
                     # Either line
-                    locdesc = 'at line %s' % (expr2.line,)
+                    locdesc = 'na linha %s' % (expr2.line,)
                 else:
                     # Or location description
                     locdesc = fnc2.getlocdesc(loc2)
 
                 # Delete feedback
                 if var1 == '-':
-                    self.add("Delete '%s' at line %s ",
+                    self.add("Delete a expressão '%s' na linha %s ",
                              str(gen.assignmentStatement(var2, expr2)), expr2.line)
                     continue
 
@@ -113,7 +113,7 @@ class PythonFeedback(object):
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.add("Add assignment '%s' %s",
+                    self.add("Adicione a atribuição '%s' %s",
                              str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc)
                     continue
 
@@ -122,12 +122,12 @@ class PythonFeedback(object):
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
-                    self.add("Change iterated expression of for loop '%s' to '%s' %s", str(pyexpr2), str(pyexpr1), locdesc)
+                    self.add("Altere a expressão iterativa do loop de '%s' para '%s' %s", str(pyexpr2), str(pyexpr1), locdesc)
                 elif str(var2) == str(expr2):
-                    self.add("Add a statement '%s' %s", str(gen.assignmentStatement(var2, expr1)), locdesc)
+                    self.add("Adicione a instrução '%s' %s", str(gen.assignmentStatement(var2, expr1)), locdesc)
                 else:
                     self.add(
-                        "Change '%s' to '%s' %s",
+                        "Altere a expressão '%s' para '%s' %s",
                         str(gen.assignmentStatement(var2, expr2)), str(gen.assignmentStatement(var2, expr1)), locdesc)
                 
                 

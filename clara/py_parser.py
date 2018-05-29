@@ -66,7 +66,7 @@ class PyParser(Parser):
                 self.addtype(arg, t)
 
             self.addloc(
-                desc="around the beginning of function '%s'" % func.name)
+                desc="em torno do começo da função '%s'" % func.name)
                 
             for b in func.body:
                 self.visit(b)
@@ -564,7 +564,7 @@ class PyParser(Parser):
         self.hasbcs = True
         preloc = self.loc
         self.loc = self.addloc(
-            desc="after 'break' statement at line %s" % (
+            desc="depois da instrução 'break' na linha %s" % (
                 node.lineno,))
         self.addtrans(preloc, True, lastloop[1])
 
@@ -582,7 +582,7 @@ class PyParser(Parser):
         self.hasbcs = True
         preloc = self.loc
         self.loc = self.addloc(
-            desc="after 'continue' statement at line %s" % (
+            desc="depois da instrução 'continue' na linha %s" % (
                 node.lineno,))
         self.addtrans(preloc, True, lastloop[0])
 

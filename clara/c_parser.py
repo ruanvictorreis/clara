@@ -117,7 +117,7 @@ class CParser(Parser):
         for v, t in params:
             self.addtype(v, t)
         
-        self.addloc(desc="at the beginning of the function '%s'" % (name,))
+        self.addloc(desc="no início da função '%s'" % (name,))
         self.visit(node.body)
 
         self.endfnc()
@@ -610,7 +610,7 @@ of 'scanf' at line %s.",
         self.hasbcs = True
         preloc = self.loc
         self.loc = self.addloc(
-            desc="after 'break' statement at line %s" % (
+            desc="depois da instrução 'break' na linha %s" % (
                 node.coord.line,))
         self.addtrans(preloc, True, lastloop[1])
 
@@ -633,7 +633,7 @@ of 'scanf' at line %s.",
         self.hasbcs = True
         preloc = self.loc
         self.loc = self.addloc(
-            desc="after 'continue' statement at line %s" % (
+            desc="depois da instrução 'continue' na linha %s" % (
                 node.coord.line,))
         self.addtrans(preloc, True, lastloop[0])
 
