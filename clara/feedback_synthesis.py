@@ -13,6 +13,7 @@ class SynthesisFeedback(object):
         self.result = result
         self.feedback = []
         self.expr_orig = None
+        self.error = False
         
         self.added_lines = []
         self.removed_lines = []
@@ -54,33 +55,51 @@ class SynthesisFeedback(object):
         code_lines[loc - 1] = line_target
         self.code_repaired = '\n'.join(code_lines)
     
-    def apply_delete_repair(self, expr):
+    def apply_delete_repair(self, expr):			
         code_lines = self.code_repaired.splitlines()
-        loc = self.find_expression_line(expr)
-        del code_lines[loc - 1]
+        loc = self.find_expression_line(expr) - 1
+        del code_lines[loc]
         
         self.removed_lines.append(loc)
         self.code_repaired = '\n'.join(code_lines)
     
-    def apply_add_statement_repair(self, var, expr, loc):        
+    def apply_add_statement_repair(self, var, expr, loc):    
         ret_statement = False
-        loc_off = loc + self.line_offset(loc)
-		
+        
+        if (loc == 0):
+            loc += 1
+        
         if var == '$ret':
             loc = loc - 1
-            loc_off = loc_off - 1
-            ret_statement = True	
+            ret_statement = True
         
+        loc_off = loc + self.line_offset(loc)
         code_lines = self.code_repaired.splitlines()
         target_line = self.find_indentation_level(loc) + expr     
         
         if(ret_statement):
 		    code_lines.append(target_line)
-		    self.added_lines.append(len(code_lines))
+		    self.added_lines.append(len(code_lines) - 1)
         else:
             code_lines.insert(loc_off, target_line)
             self.added_lines.append(loc_off)
 
+        self.code_repaired = '\n'.join(code_lines)
+        
+    def apply_new_statement_repair(self, var, expr, loc):
+        if (loc == 0):
+            loc += 1
+        
+        lineExists = loc < len(self.impl.code.splitlines())
+        if (not lineExists):
+            loc -= 1
+        
+        loc_off = loc + self.line_offset(loc)
+        code_lines = self.code_repaired.splitlines()
+        target_line = self.find_indentation_level(loc) + expr     
+        
+        code_lines.insert(loc_off, target_line)
+        self.added_lines.append(loc_off)       
         self.code_repaired = '\n'.join(code_lines)
         		
     def find_indentation_level(self, loc):
@@ -110,7 +129,7 @@ class SynthesisFeedback(object):
         offset = 0
 		
         for line in self.removed_lines:
-            if new_line >= line:
+            if new_line > line:
                 offset -= 1
 
         for line in self.added_lines:
@@ -162,7 +181,7 @@ class SynthesisFeedback(object):
                             str(gen.assignmentStatement(var2, expr2)))    					
                         continue
                     except:
-						pass  
+                        self.error = True   
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
@@ -170,12 +189,12 @@ class SynthesisFeedback(object):
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
                     try: 
-                        self.apply_add_statement_repair(var1,
+                        self.apply_new_statement_repair(var1,
                             str(gen.assignmentStatement('new_%s' % 
-                            (var1,), expr1)), loc1)                   
+                            (var1,), expr1)), loc1 - 1)                   
                         continue
                     except:
-						pass  
+                        self.error = True 
 
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
@@ -184,21 +203,21 @@ class SynthesisFeedback(object):
                         pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
                         self.apply_change_repair(pyexpr2, pyexpr1)
                     except:
-						pass    
+                        self.error = True   
 
                 elif str(var2) == str(expr2):
                     try:
                         self.apply_add_statement_repair(var2,
-                            str(gen.assignmentStatement(var2, expr1)), loc1)
+                            str(gen.assignmentStatement(var2, expr1)), loc1 - 1)
                     except:
-						pass    					
+                        self.error = True  					
                 
                 elif str(var2) == str(expr1):
                      try:				
                         self.apply_delete_repair(
                             str(gen.assignmentStatement(var2, expr2)))
                      except:
-						pass
+                        self.error = True
                     
                 else:
                     try:
@@ -206,7 +225,8 @@ class SynthesisFeedback(object):
                             str(gen.assignmentStatement(var2, expr2)), 
                             str(gen.assignmentStatement(var2, expr1)))     
                     except:
-						pass
+                        self.error = True
         
         # adding repaired code to feedback list
-        self.feedback.append(self.code_repaired)
+        if (not self.error):
+            self.feedback.append(self.code_repaired)
