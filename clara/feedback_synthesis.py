@@ -26,32 +26,19 @@ class SynthesisFeedback(object):
 		
         if expr1 in line_target:
             line_target = line_target.replace(expr1, expr2)
-		
-        expr1_striped = expr1.strip()
-        line_target_striped = line_target.strip()
-             
-        seq_matcher = SequenceMatcher(
-            None, line_target_striped, expr1_striped)
         
-        first_match = seq_matcher.get_matching_blocks()[0]
+        matched_expr = self.find_matched_expression(
+            line_target.strip(), expr1.strip(), -1)
         
-        common_expression = line_target_striped[
-            first_match.a: first_match.a + first_match.size][:-1]
+        if matched_expr not in expr2:
+            matched_expr = self.find_matched_expression(
+                matched_expr, expr2, len(matched_expr)) 		
         
-        if common_expression not in expr2:
-            seq_matcher = SequenceMatcher(
-                None, common_expression, expr2)
-            
-            first_match = seq_matcher.get_matching_blocks()[0]
-            
-            common_expression = common_expression[
-                first_match.a: first_match.a + first_match.size]   		
-        
-        line_target_splited = line_target.split(common_expression, 1)
-        expression_splited = expr2.split(common_expression, 1)
+        line_target_splited = line_target.split(matched_expr, 1)
+        expression_splited = expr2.split(matched_expr, 1)
         
         line_target_splited[-1] = expression_splited[-1]
-        line_target = common_expression.join(line_target_splited)
+        line_target = matched_expr.join(line_target_splited)
         code_lines[loc - 1] = line_target
         self.code_repaired = '\n'.join(code_lines)
     
@@ -138,6 +125,15 @@ class SynthesisFeedback(object):
         
         return offset	 
     
+    def find_matched_expression(self, target, expr, offset):        
+        seq_matcher = SequenceMatcher(
+            None, target, expr)
+        
+        first_match = seq_matcher.get_matching_blocks()[0]
+        
+        return target[first_match.a: 
+            first_match.a + first_match.size][:offset]
+    
     def genfeedback(self):
         gen = PythonStatementGenerator()
         # Iterate all functions
@@ -176,56 +172,56 @@ class SynthesisFeedback(object):
 
                 # delete feedback
                 if var1 == '-':
-                    try:                    
+                    #try:                    
                         self.apply_delete_repair(
                             str(gen.assignmentStatement(var2, expr2)))    					
                         continue
-                    except:
-                        self.error = True   
+                    #except:
+                        #self.error = True   
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    try: 
+                    #try: 
                         self.apply_new_statement_repair(var1,
                             str(gen.assignmentStatement('new_%s' % 
                             (var1,), expr1)), loc1 - 1)                   
                         continue
-                    except:
-                        self.error = True 
+                    #except:
+                        #self.error = True 
 
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
-                    try:
+                    #try:
                         pyexpr1 = str(gen.pythonExpression(expr1, True)[0]) + ":"
                         pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
                         self.apply_change_repair(pyexpr2, pyexpr1)
-                    except:
-                        self.error = True   
+                    #except:
+                        #self.error = True   
 
                 elif str(var2) == str(expr2):
-                    try:
+                    #try:
                         self.apply_add_statement_repair(var2,
                             str(gen.assignmentStatement(var2, expr1)), loc1 - 1)
-                    except:
-                        self.error = True  					
+                    #except:
+                        #self.error = True  					
                 
                 elif str(var2) == str(expr1):
-                     try:				
+                     #try:				
                         self.apply_delete_repair(
                             str(gen.assignmentStatement(var2, expr2)))
-                     except:
-                        self.error = True
+                     #except:
+                        #self.error = True
                     
                 else:
-                    try:
+                    #try:
                         self.apply_change_repair(
                             str(gen.assignmentStatement(var2, expr2)), 
                             str(gen.assignmentStatement(var2, expr1)))     
-                    except:
-                        self.error = True
+                    #except:
+                        #self.error = True
         
         # adding repaired code to feedback list
         if (not self.error):
