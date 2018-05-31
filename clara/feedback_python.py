@@ -122,9 +122,14 @@ class PythonFeedback(object):
                 if var2.startswith('iter#'):
                     pyexpr1 = gen.pythonExpression(expr1, True)[0]
                     pyexpr2 = gen.pythonExpression(expr2, True)[0]
-                    self.add("Altere a expressão iterativa do loop de '%s' para '%s' %s", str(pyexpr2), str(pyexpr1), locdesc)
+                    self.add("Altere a expressão do loop de '%s' para '%s' %s", str(pyexpr2), str(pyexpr1), locdesc)
+                
                 elif str(var2) == str(expr2):
                     self.add("Adicione a instrução '%s' %s", str(gen.assignmentStatement(var2, expr1)), locdesc)
+                
+                elif str(var2) == str(expr1):
+                    self.add("Delete a expressão '%s' na linha %s ",
+                        str(gen.assignmentStatement(var2, expr2)), expr2.line)
                 else:
                     self.add(
                         "Altere a expressão '%s' para '%s' %s",
