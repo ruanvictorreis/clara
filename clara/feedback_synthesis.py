@@ -23,22 +23,31 @@ class SynthesisFeedback(object):
         code_lines = self.code_repaired.splitlines()
         loc = self.find_expression_line(expr1)
         line_target = code_lines[loc - 1]
+        colon = False
 		
-        if expr1 in line_target:
+        if (line_target.strip().endswith(':')):
+            colon = True
+		
+        if (expr1 in line_target):
             line_target = line_target.replace(expr1, expr2)
         
         matched_expr = self.find_matched_expression(
             line_target.strip(), expr1.strip(), -1)
-        
-        if matched_expr not in expr2:
+
+        if (matched_expr not in expr2):
             matched_expr = self.find_matched_expression(
                 matched_expr, expr2, len(matched_expr)) 		
         
         line_target_splited = line_target.split(matched_expr, 1)
         expression_splited = expr2.split(matched_expr, 1)
-        
         line_target_splited[-1] = expression_splited[-1]
+        
+        matched_expr = expression_splited[0] + matched_expr
         line_target = matched_expr.join(line_target_splited)
+        
+        if (colon) : 
+            line_target += ':'
+        
         code_lines[loc - 1] = line_target
         self.code_repaired = '\n'.join(code_lines)
     
@@ -101,10 +110,14 @@ class SynthesisFeedback(object):
         target_line = 0
         impl_code = self.code_repaired
         code_lines = impl_code.splitlines()
+        pattern = expr.replace('(', '').replace(')', '').strip()
         
         for i in range(len(code_lines)):
             line = code_lines[i].strip()
             ratio = SequenceMatcher(None, line, expr.strip()).ratio()
+            
+            if pattern in line:
+				ratio += 0.1
             
             if(ratio > ratio_line):
                 ratio_line = ratio
@@ -195,8 +208,8 @@ class SynthesisFeedback(object):
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
                     #try:
-                        pyexpr1 = str(gen.pythonExpression(expr1, True)[0]) + ":"
-                        pyexpr2 = str(gen.pythonExpression(expr2, True)[0]) + ":"
+                        pyexpr1 = str(gen.pythonExpression(expr1, True)[0])
+                        pyexpr2 = str(gen.pythonExpression(expr2, True)[0])
                         self.apply_change_repair(pyexpr2, pyexpr1)
                     #except:
                         #self.error = True   
