@@ -185,56 +185,56 @@ class SynthesisFeedback(object):
 
                 # delete feedback
                 if var1 == '-':
-                    #try:                    
+                    try:                    
                         self.apply_delete_repair(
                             str(gen.assignmentStatement(var2, expr2)))    					
                         continue
-                    #except:
-                        #self.error = True   
+                    except:
+                        self.error = True   
 
                 # rewrite expr1 (from spec.) with variables of impl.
                 expr1 = expr1.replace_vars(nmapping)
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    #try: 
+                    try: 
                         self.apply_new_statement_repair(var1,
                             str(gen.assignmentStatement('new_%s' % 
                             (var1,), expr1)), loc1 - 1)                   
                         continue
-                    #except:
-                        #self.error = True 
+                    except:
+                        self.error = True 
 
                 # output original and new (rewriten) expression for var2              
                 if var2.startswith('iter#'):
-                    #try:
+                    try:
                         pyexpr1 = str(gen.pythonExpression(expr1, True)[0])
                         pyexpr2 = str(gen.pythonExpression(expr2, True)[0])
                         self.apply_change_repair(pyexpr2, pyexpr1)
-                    #except:
-                        #self.error = True   
+                    except:
+                        self.error = True   
 
                 elif str(var2) == str(expr2):
-                    #try:
+                    try:
                         self.apply_add_statement_repair(var2,
                             str(gen.assignmentStatement(var2, expr1)), loc1 - 1)
-                    #except:
-                        #self.error = True  					
+                    except:
+                        self.error = True  					
                 
                 elif str(var2) == str(expr1):
-                     #try:				
+                     try:				
                         self.apply_delete_repair(
                             str(gen.assignmentStatement(var2, expr2)))
-                     #except:
-                        #self.error = True
+                     except:
+                        self.error = True
                     
                 else:
-                    #try:
+                    try:
                         self.apply_change_repair(
                             str(gen.assignmentStatement(var2, expr2)), 
                             str(gen.assignmentStatement(var2, expr1)))     
-                    #except:
-                        #self.error = True
+                    except:
+                        self.error = True
         
         # adding repaired code to feedback list
         if (not self.error):
