@@ -1,8 +1,8 @@
 def fibonacci(n):
-  fib_list = []
+  value = 0
+  values = [0, 1]
   for i in range(n):
-    s = len(fib_list)
-    a = fib_list[size - 1]
-    b = fib_list[size - 2]
-    fib_list.append(b)  
-  return fib_list[n - 1]
+    value = values[0] + values[1]
+    values[0] = values[1]
+    values[1] = value  
+  return value
