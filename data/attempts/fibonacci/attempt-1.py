@@ -1,8 +1,9 @@
 def fibonacci(n):
-  value = 0
-  values = [0, 1]
-  for i in range(n):
-    value = values[0] + values[1]
-    values[0] = values[1]
-    values[1] = value  
-  return value
+  anterior = 0
+  proximo = 1
+  i = 0
+  while i <= (n - 1):
+    anterior = proximo
+    proximo = anterior + proximo
+    n = n - 1  
+  return anterior

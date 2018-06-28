@@ -198,9 +198,10 @@ class SynthesisFeedback(object):
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
                     try: 
-                        self.apply_new_statement_repair(var1,
-                            str(gen.assignmentStatement('new_%s' % 
-                            (var1,), expr1)), loc1 - 1)                   
+                        if str('new_%s' % (var1,)) != str(expr1):
+                            self.apply_new_statement_repair(var1,
+                                str(gen.assignmentStatement('new_%s' % 
+                                (var1,), expr1)), loc1 - 1)                   
                         continue
                     except:
                         self.error = True 

@@ -68,7 +68,7 @@ class PythonFeedback(object):
         for fname, (mapping, repairs, sm) in self.result.items():
 
             # Copy mapping with converting '*' into a 'new_' variable
-            nmapping = {k: '$new_%s' % (k,)
+            nmapping = {k: 'new_%s' % (k,)
                         if v == '*' else v for (k, v) in mapping.items()}
 
             # Go through all repairs
@@ -113,8 +113,9 @@ class PythonFeedback(object):
 
                 # '*' means adding a new variable (and also statement)
                 if var2 == '*':
-                    self.add("Adicione a atribuição '%s' %s",
-                             str(gen.assignmentStatement('$new_%s' % (var1,), expr1)), locdesc)
+                    if str('new_%s' % (var1,)) != str(expr1):
+                        self.add("Adicione a atribuição '%s' %s",
+                                 str(gen.assignmentStatement('new_%s' % (var1,), expr1)), locdesc)
                     continue
 
                 # Output original and new (rewriten) expression for var2

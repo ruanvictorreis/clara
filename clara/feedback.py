@@ -286,8 +286,14 @@ class FeedGen(object):
 
         # Return best repaired if there are any
         if len(feedbacks) > 0:
-            feedbacks.sort()
-            return feedbacks[0][1]
+            feedbacks.sort()         
+            best_repaired = None
+            
+            for feed in feedbacks:
+                if feed[1].cost > 0.0:
+					best_repaired = feed[1]
+					break            
+            return best_repaired
 
         # Otherwise return something remembered
         return feedback
